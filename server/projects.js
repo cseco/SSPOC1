@@ -32,6 +32,8 @@ var uploadToOSS =function (identifier) {
 	var bucket =config.bucket ;
 	return (utils.json (identifier)
 		.then (function (json) {
+			console.log("................................")
+			console.log(json)
 			var stream =fs.createReadStream (utils.path ('tmp/' + json.name))
 				.on ('data', function (chunk) {
 					json.bytesPosted +=chunk.length ;
@@ -65,7 +67,7 @@ router.post ('/projects', function (req, res) {
 			//console.log (JSON.stringify (files, null, 2)) ;
 			for ( var i =0 ; i < files.length ; i++ ) {
 				console.log (files [i].objectKey + ' uploaded to OSS') ;
-				utils.unlink (utils.path ('tmp/' + files [i].objectKey)) ;
+			//	utils.unlink (utils.path ('tmp/' + files [i].objectKey)) ;
 			}
 			return (utils.json (req.body.uniqueIdentifier)) ;
 		})

@@ -48,6 +48,7 @@ router.post ('/file', multipartMiddleware, function (req, res) {
 			}) ;
 			var st =fs.createWriteStream ('./tmp/' + original_filename)
 				.on ('finish', function () {
+					console.log("file uploaded");
 					if ( utils.isCompressed (original_filename) ) {
 						data.entries =[] ;
 						var zip =new AdmZip ('./tmp/' + original_filename) ;

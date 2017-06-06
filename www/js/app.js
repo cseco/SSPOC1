@@ -163,6 +163,7 @@ function deleteProject (identifier) {
 }
 
 function submitProject (data) {
+	console.log(data)
 	$.ajax ({
 		url: '/api/projects',
 		type: 'post',
@@ -214,6 +215,12 @@ function projectProgress (root, nb) {
 				} else {
 					$(name + ' img').attr ('src', '/images/project.png') ;
 				}
+
+				//
+				console.log('/explore/' + root);
+				//alert('/explore/' + root);
+				//window.location = '/explore/' + root;
+				setTimeout(window.location = '/explore/' + root, 10000);
 			} else {
 				$(name + ' div p').text ('Failed!') ;
 				$(name + ' img').attr ('src', '/images/failed.png') ;
@@ -314,6 +321,8 @@ var fileUploadItem ={
 				glyph ='glyphicon-ok' ;
 			}
 		}
+		console.log("upload done");
+		$('#submit-project').click();
 	},
 
 	/*static */selectAsHome: function (evt) {

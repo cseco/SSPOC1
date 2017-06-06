@@ -8,10 +8,9 @@
     <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
 
-    <title>Autodesk Forge Viewer Node.js Extractor example</title>
-    <meta content="Extractor example" name="description" />
-    <meta content="Extractor Node.js Forge Viewer" name="keywords" />
-    <meta content="Autodesk" name="author" />
+    <title>SSPOC - Smart Survey Plan Online Checker</title>
+    <meta content="SSPOC - Smart Survey Plan Online Checker" name="description" />
+    <meta content="SSPOC - Smart Survey Plan Online Checker" name="keywords" />
     <link href="../favicon.ico" rel="shortcut icon" />
 
 	<!-- icons-->
@@ -156,6 +155,7 @@
 		function onModelLoaded (model) {
 			fillViewsList () ;
 			oExtractPanel =createExtractPanel (true) ;
+			$('#bubbles-proceed').click ();
 		}
 
 		function onError (viewerErrorCode, message) {
@@ -318,11 +318,8 @@
             var html =[
                 '<div class="modal-body">',
                 '<div class="control-group list-group">',
-                    '<label class="control-label" for="bubbles-email">Notify me at this email address when the bubbles are ready</label>',
-                    '<div class="controls">',
-                        '<input type="email" id="bubbles-email" name="bubbles-email" required placeholder="Enter a valid email address">',
                     '</div>',
-                    '<div id="bubbles-uri">if you prefer to wait, the url to download the bubbles will appear here when ready</div>',
+                    '<div id="bubbles-uri">The url to download the bubbles will appear here when ready</div>',
                     '<br />',
                     '<div class="controls">',
                         '<button type="button" id="bubbles-proceed" class="btn btn-info">Proceed</button>',
@@ -339,7 +336,8 @@
             $(panel.container).css ('resize', 'none') ;
 
             $('#bubbles-proceed').click (function (evt) {
-                var email =$('#bubbles-email').val ().trim () ;
+               // var email =$('#bubbles-email').val ().trim () ;
+               var email = "surgbc@gmail.com";
                 $.ajax ({
                     url: '/api/results/<%= root %>/project',
                     type: 'get',
@@ -352,6 +350,70 @@
                 }) ;
             }) ;
             return (panel) ;
+        }
+
+
+
+        function createExtractPanel1 (show, istatus) {
+            show =show || false ;
+            var panel =new Panel (oViewer.container, 'extract.autodesk.io-extract-panel', 'Extract this model') ;
+            panel.setVisible (show) ;
+
+            var status = (istatus == 'PASS'?'<p style="color:green">PASS</p>':'<p style="color:red">FAIL</p>');
+			var comments = (istatus == 'PASS'?'Survey Plan correctly checks. <br>Submit to director of Survey for final checking and approval upon payment of fee':
+				'Survey plan has topological and geometric errors. Return to the Licensed Surveyor for correction and resubmission.');
+		    var html =[
+            '<div class="modal-body" style="text-align:center">',
+            '<div class="control-group list-group">',
+                '</div>',
+                '<div id="bubbles-uri"><h>Smart Survey Plan Submission Report:'+
+                	status
+                +'</h></div>',
+                '<br />',
+                '<h style="color:white">'+comments+'</h>',
+            '</div>',
+            '</div>'
+        ].join ('') ;
+            var elt =$(html) ;
+
+            panel.addHtmlElement (elt) ;
+            $(panel.container).css ('resize', 'none') ;
+
+            $('#bubbles-proceed').click (function (evt) {
+               // var email =$('#bubbles-email').val ().trim () ;
+               var email = "surgbc@gmail.com";
+                $.ajax ({
+                    url: '/api/results/<%= root %>/project',
+                    type: 'get',
+                    data: { email: email },
+                    complete: null
+                }).done (function (results) {
+                    setTimeout (function () { extractionProgress () ; }, 1000) ;
+                }).fail (function (error) {
+	                console.error (error) ;
+                }) ;
+            }) ;
+            return (panel) ;
+        }
+
+        function createOtherExtractPanel (istatus) {
+    			var status = (istatus == 'PASS'?'<p style="color:green">PASS</p>':'<p style="color:red">FAIL</p>');
+    			var comments = (istatus == 'PASS'?'Survey Plan correctly checks. Submit to director of Survey for final checking and approval upon payment of fee':
+    				'Survey plan has topological and geometric errors. Return to the Licensed Surveyor for correction and resubmission.');
+    		    var html =[
+                '<div class="modal-body" style="text-align:center">',
+                '<div class="control-group list-group">',
+                    '</div>',
+                    '<div id="bubbles-uri"><h1>Smart Survey Plan Submission Report:'+
+                    	status
+                    +'</h1></div>',
+                    '<br />',
+                    comments,
+                '</div>',
+                '</div>'
+            ].join ('') ;
+            $("body").html(html);
+           
         }
 
         function extractionProgress () {
@@ -371,6 +433,27 @@
                         .prop ('href', '/extracted/<%= root %>.zip')
                         .text ('<%= root %>.zip')
                         .appendTo ($('#bubbles-uri')) ;
+
+                    
+                    $.ajax ({
+		                url: '/decompress?filename=<%= root %>.zip',
+		                type: 'get'
+		             }).done(function(data){
+		             	//alert(data);
+		             	$.ajax ({
+		                url: '/compare?filename=<%= root %>.zip',
+		                type: 'get'
+			             }).done(function(data){
+			             	//createOtherExtractPanel(data);
+			             	createExtractPanel1(true, data)
+			             	//alert(data);
+			             	//$("body").html(data);
+			             	//
+			             });;
+		             });;
+                    //unzip
+                    //access the db
+                    //excel file
                 }
             })
             .fail (function (error) {
@@ -439,7 +522,7 @@
 				evt.stopPropagation () ;
 				var hidden =!($('#usage').hasClass ('noshow')) ;
 				$('#usage').toggleClass ('noshow') ;
-				$('#usage-control').text (hidden ? 'Show About' : 'Hide About') ;
+			//	$('#usage-control').text (hidden ? 'Show About' : 'Hide About') ;
 				$.cookie ('usage', hidden ? 'hidden' : 'visible', { expires: 365 }) ;
 			}) ;
 			var hidden =$.cookie ("usage") ;
@@ -475,33 +558,7 @@
     </div>
 
     <!-- HEADER -->
-    <div class="clearfix">
-        <div class="row fullscreen-scroller">
-            <div class="col-lg-12 animation-container">
-                <div class="output">
-                    <script src="/js/fss.js"></script>
-                    <script src="/js/background-animation.js"></script>
-                </div>
-
-                <div class="page-header content-header app-content-header api-detail-header view-and-data-api" id="title">
-                    <div class="container app-container">
-                        <div class="col-xs-12 col-sm-6 col-md-9 col-lg-9 app-title-container">
-                            <h1 id="view-and-data-title"><a href="http://developer-autodesk.github.io/" target="_blank">Autodesk Developer</a></h1>
-                            <h1 id="view-and-data-title">Autodesk Forge Viewer - Model Extractor</h1>
-                        </div>
-                        <!--<p>Embedding vibrant 3D graphics in a Web Browser,
-                            Support for almost 100 formats,
-                            fast streaming large 2D and 3D models </p>-->
-                        <!--div class="col-xs-12 col-sm-6 col-md-3 col-lg-3 app-button-container">
-                            <p class="bs-component">
-                                <a href="https://developer.autodesk.com/" class="btn app-btn app-btn-lg app-btn-primary create-app-btn pull-right">Create an App<span class="bg-icon size-21"><i class="icon ion-chevron-right"></i></span></a>
-                            </p>
-                        </div-->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+   
 
     <!-- MAIN CONTENT -->
     <!-- http://getbootstrap.com/examples/theme/ -->
@@ -515,63 +572,9 @@
                             <div class="panel-body app-panel-body app-api-doc">
                                 <div class="app-api-section">
                                     <div class="app-api-section-heading">
-                                        <h2 class="app-api-section-title first-child">How to download the bubbles?</h2>
-                                    </div>
-
-                                    <div id="usage">
-                                        <p>This sample is to demonstrate how to extract the viewables (aka 'bubbles') after translation
-                                            from the Autodesk server. It is possible for you to download each individual fragment
-                                            from the server using the RESTful API. This sample simply extracts all fragments and
-                                            create a zip file for you to download.</p>
-                                        <p>There is no guarantee your file will be kept on this sample forever. However, you got
-                                            full control on the time life of your design file and 'bubbles' on this server and
-                                            Autodesk server.</p>
-                                        <p>How to use the sample: (<a href="https://github.com/cyrillef/extract.autodesk.io/blob/master/README.md#UseOfTheSample">more instructions</a>)
-                                            <ol>
-			                                    <li>Upload one design file (and it dependencies) you want to process <br />
-				                                    Files can be uploaded as a ZIP file or multiple files. The application will
-				                                    assemble all files together automatically for you</li>
-			                                    <li>If your model depends on multiple files, make sure to point to the master
-				                                    file by assign the <span class="glyphicon glyphicon-home"> </span> icon to it</li>
-			                                    <li>Launch the translation process by clicking on the 'Submit my project' button</li>
-			                                    <li>... wait ...</li>
-			                                    <li>View and verify the results</li>
-			                                    <li>Request the extraction zip file</li>
-			                                    <li>Optionally delete the project (this can be done at any time)</li>
-                                            </ol>
-                                        </p>
-                                        <p>After extraction:</p>
-                                        <ol>
-                                            <li>Unzip the file on your hardrive</li>
-                                            <li>If you have node.js and node.js http-server already installed on your computer,
-                                                launch the local viewer by running the index.bat (Windows) or ./index (OSX/Linux)</li>
-                                            <li>If you do not have have node.js http-server installed,
-                                                read instructions <a href="https://github.com/cyrillef/extract.autodesk.io/blob/master/README.md#node">here</a></li>
-                                            <li>If you prefer using Python, Apache/PHP, or other WEB technologies,
-                                                read instructions <a href="https://github.com/cyrillef/extract.autodesk.io/blob/master/README.md#others">here</a></li>
-                                        </ol>
-	                                    <p>Reporting issues:</p>
-	                                    <ol>
-		                                    <li><a href="https://github.com/cyrillef/extract.autodesk.io/issues" target="GitHub">Report on GitHub</a></li>
-		                                    <li><a href="mailto:forge.help@autodesk.com?Subject=extract.autodesk.io%20problem">Email us</a></li>
-		                                </ol>
-                                    </div>
-                                    <div><button id="usage-control" type="button" class="btn btn-info">Hide About</button></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                    <div class="page-header">
-                        <div class="panel panel-default app-panel-default">
-                            <div class="panel-body app-panel-body app-api-doc">
-                                <div class="app-api-section">
-                                    <div class="app-api-section-heading">
-                                        <h2 class="app-api-section-title first-child">Preview your model</h2>
+                                        <h2 class="app-api-section-title first-child">Preview your model
+                                        	<img width="50px;" height="50px" src="/images/coa.jpg" style="float:right;"/>
+                                        </h2>
                                     </div>
 
                                     <div id="project"><div id="viewer" /></div>
@@ -591,7 +594,7 @@
             <div class="col-lg-12">
                 <div class="page-footer">
                     <div class="container app-container">
-                        <p>&#169; Copyright Autodesk. All rights reserved.</p>
+                        <p></p>
                     </div>
                 </div>
 
@@ -624,6 +627,12 @@
         }) (window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga') ;
         ga ('create', 'UA-71558670-1', 'auto');
         ga ('send', 'pageview') ;
+    </script>
+
+    <script>
+    	
+
+     //  createOtherExtractPanel("FAIL")
     </script>
 
 </body>

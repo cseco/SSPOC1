@@ -20,7 +20,9 @@
 $(document).ready (function () {
     $('#upload-modal input[type=file]').change (function (evt) {
         evt.stopPropagation () ;
+        console.log("found it...")
         //var files =$(evt.target).prop ("files") ;
+        console.log(evt.target.files)
         window.r.flow.addFiles (evt.target.files, evt) ;
         //window.r.upload () ;
     }) ;
